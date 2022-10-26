@@ -27,18 +27,16 @@ func NewAgeProcessor(
 }
 
 func (p *AgeProcessor) RunProcessor(ctx context.Context) {
-	//TODO: implement process functionality
-
-	for{
+	for {
 		select {
-		case RecDate:=<-p.input:
-			plant := p.plantsRepo.GetPlant(RecDate.PlantID)
+		case recData := <-p.input:
+			plant := p.plantsRepo.GetPlant(recData.PlantID)
 			switch {
-			case int(RecDate.Data) == 30:
-				log.Printf("Рослина %s, з ID: %s: дозріла!!!",plant.Name, RecDate.PlantID)
-			default :
-				leftDay:=30-int(RecDate.Data)// 30 днів термін достигання
-				log.Printf("Вік рослини %s, з ID: %s: %v, рослина дозріє через %v днів",plant.Name, RecDate.PlantID,RecDate.Data,leftDay)
+			case recData.Data == plant.Age:
+				log.Printf("Рослина %s, з ID: %s: дозріла!!!", plant.Name, recData.PlantID)
+			default:
+				leftDay := plant.Age - recData.Data // 30 днів термін достигання
+				log.Printf("Вік рослини %s, з ID: %s: %v, рослина дозріє через %v днів", plant.Name, recData.PlantID, recData.Data, leftDay)
 			}
 		case <-ctx.Done():
 			return
