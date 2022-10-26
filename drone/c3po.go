@@ -1,6 +1,7 @@
 package drone
 
 import (
+	"fmt"
 	"github.com/SchoolGolang/multithreading-practice/util"
 )
 
@@ -18,10 +19,12 @@ func NewC3PODrone(id string, charge float64, position util.Point) *C3PODrone {
 	}
 }
 
-func (d *C3PODrone) ChangePosition(point util.Point) {
+//func (d *C3PODrone) ChangePosition(point util.Point) {
+//
+//}
 
-}
-
-func (d *C3PODrone) Recharge() {
-
+func (d *C3PODrone) Recharge()  {
+ if d.Charge < 20 {
+	 fmt.Println("go to charge")
+ }
 }

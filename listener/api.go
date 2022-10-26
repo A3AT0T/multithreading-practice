@@ -26,7 +26,17 @@ func (l *GenericListener[T]) AddChan(ch <-chan T) {
 }
 
 func (l *GenericListener[T]) Listen(ctx context.Context) <-chan T {
-	//TODO: implement listen functionality
-
+	for _, ch := range l.chArr {
+		go func(ch <-chan T) {
+			for {
+				select {
+				case dataItem := <-ch:
+					l.out <- dataItem
+				case <-ctx.Done():
+					return
+				}
+			}
+		}(ch)
+	}
 	return l.out
 }

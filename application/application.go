@@ -21,8 +21,8 @@ func Run(ctx context.Context) {
 	phSensorsRepo := sensorRepo.NewRepository[int]()
 	hydrationSensorsRepo := sensorRepo.NewRepository[float64]()
 	healthSensorsRepo := sensorRepo.NewRepository[plant.HealthData]()
-
-	plantsService := mock.NewPlantsServiceMock(plantsRepo, phSensorsRepo, hydrationSensorsRepo, healthSensorsRepo, 20)
+	ageSensorsRepo := sensorRepo.NewRepository[int]()
+	plantsService := mock.NewPlantsServiceMock(plantsRepo, phSensorsRepo, hydrationSensorsRepo, healthSensorsRepo,ageSensorsRepo, 20)
 
 	for i := 0; i < 10; i++ {
 		plantsService.AddPlant()
@@ -31,6 +31,7 @@ func Run(ctx context.Context) {
 	phListener := listener.NewListener[sensor.SensorData[int]]()
 	hydrationListener := listener.NewListener[sensor.SensorData[float64]]()
 	healthListener := listener.NewListener[sensor.SensorData[plant.HealthData]]()
+	ageListener := listener.NewListener[sensor.SensorData[int]]()
 
 	for _, s := range phSensorsRepo.GetAll() {
 		phListener.AddChan(s.Connect())
@@ -43,12 +44,15 @@ func Run(ctx context.Context) {
 	for _, s := range healthSensorsRepo.GetAll() {
 		healthListener.AddChan(s.Connect())
 	}
-
+	for _, s := range ageSensorsRepo.GetAll() {
+		ageListener.AddChan(s.Connect())
+	}
 	go plantsService.SendRandomUpdates(ctx)
 
 	phOut := phListener.Listen(ctx)
 	hydrationOut := hydrationListener.Listen(ctx)
 	healthOut := healthListener.Listen(ctx)
+	ageOut := ageListener.Listen(ctx)
 
 	dronesRepo := droneRepository.NewDroneRepo(plantsService, plantsRepo)
 
@@ -61,9 +65,12 @@ func Run(ctx context.Context) {
 	healthProcessor := processor.NewHealthProcessor(plantsRepo, healthOut, dronesRepo)
 	go healthProcessor.RunProcessor(ctx)
 
+	ageProcessor := processor.NewAgeProcessor(plantsRepo, ageOut , dronesRepo)
+	go ageProcessor.RunProcessor(ctx)
+
 	wg := sync.WaitGroup{}
 	wg.Add(1)
-	go gracefulShutdown(ctx, &wg, phSensorsRepo, hydrationSensorsRepo, healthSensorsRepo)
+	go gracefulShutdown(ctx, &wg, phSensorsRepo, hydrationSensorsRepo, healthSensorsRepo,ageSensorsRepo)
 	wg.Wait()
 
 }
@@ -74,6 +81,8 @@ func gracefulShutdown(
 	phSensorsRepo *sensorRepo.SensorRepo[int],
 	hydrationSensorsRepo *sensorRepo.SensorRepo[float64],
 	healthSensorsRepo *sensorRepo.SensorRepo[plant.HealthData],
+	ageSensorsRepo *sensorRepo.SensorRepo[int],
+
 ) {
 	for {
 		select {
@@ -86,6 +95,9 @@ func gracefulShutdown(
 				s.Disconnect()
 			}
 			for _, s := range healthSensorsRepo.GetAll() {
+				s.Disconnect()
+			}
+			for _, s := range ageSensorsRepo.GetAll() {
 				s.Disconnect()
 			}
 

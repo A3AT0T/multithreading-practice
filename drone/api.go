@@ -11,4 +11,5 @@ type DroneProcessor interface {
 type Drone interface {
 	ChangePosition(point util.Point)
 	Recharge()
+
 }

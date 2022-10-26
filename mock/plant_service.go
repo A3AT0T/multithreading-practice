@@ -8,6 +8,8 @@ import (
 	sensorRepo "github.com/SchoolGolang/multithreading-practice/sensor/repository"
 	"github.com/SchoolGolang/multithreading-practice/util"
 	"github.com/google/uuid"
+	//"log"
+
 	"math/rand"
 	"time"
 )
@@ -17,7 +19,7 @@ type PlantsServiceMock struct {
 	phRepo        *sensorRepo.SensorRepo[int]
 	hydrationRepo *sensorRepo.SensorRepo[float64]
 	healthRepo    *sensorRepo.SensorRepo[plant.HealthData]
-
+	ageRepo		  *sensorRepo.SensorRepo[int]
 	frequency int
 }
 
@@ -26,6 +28,7 @@ func NewPlantsServiceMock(
 	phRepo *sensorRepo.SensorRepo[int],
 	hydrationRepo *sensorRepo.SensorRepo[float64],
 	healthRepo *sensorRepo.SensorRepo[plant.HealthData],
+	ageRepo *sensorRepo.SensorRepo[int],
 	frequency int,
 ) *PlantsServiceMock {
 	return &PlantsServiceMock{
@@ -33,6 +36,7 @@ func NewPlantsServiceMock(
 		phRepo:        phRepo,
 		hydrationRepo: hydrationRepo,
 		healthRepo:    healthRepo,
+		ageRepo:	   ageRepo,
 		frequency:     frequency,
 	}
 }
@@ -45,15 +49,20 @@ func (ps *PlantsServiceMock) SendRandomUpdates(ctx context.Context) {
 		case <-ctx.Done():
 			return
 		default:
-			switch rand.Intn(20) {
+			switch rand.Intn(100) {
 			case 0:
 				ps.UpdatePlantPH(plantID, GetPHData())
-			case 1:
+		 	case 1:
 				ps.UpdatePlantHydration(plantID, GetHydrationData())
+				//log.Printf("plant_id: %s, hd: %v",plantID,GetHydrationData() )
 			case 2:
+				//log.Printf("plant_id: %s, hp: %v",plantID, GetHealthData() )
 				ps.UpdatePlantHealth(plantID, GetHealthData())
+			case 3:
+				ps.UpdatePlantAge(plantID, GetAgeData() )
+				//log.Printf("plant_id: %s, age: %v",plantID, GetAgeData() )
 			}
-			time.Sleep(200 * time.Millisecond)
+			time.Sleep(10 * time.Millisecond)
 		}
 	}
 }
@@ -71,6 +80,9 @@ func (ps *PlantsServiceMock) AddPlant() string {
 
 	healthSensor := sensor.NewSensor[plant.HealthData](uuid.New().String(), plantId)
 	ps.healthRepo.AddSensor(healthSensor)
+
+	ageSensor := sensor.NewSensor[int](uuid.New().String(), plantId) // AGE
+	ps.ageRepo.AddSensor(ageSensor)						        	 // AGE
 
 	return plantId
 }
@@ -104,5 +116,13 @@ func (ps *PlantsServiceMock) UpdatePlantHealth(plantId string, health plant.Heal
 	s.Connect() <- sensor.SensorData[plant.HealthData]{
 		PlantID: s.PlantID,
 		Data:    health,
+	}
+}
+
+func (ps *PlantsServiceMock) UpdatePlantAge(plantId string, age int) {
+	s := ps.ageRepo.GetSensorByPlantID(plantId)
+	s.Connect() <- sensor.SensorData[int]{
+		PlantID: s.PlantID,
+		Data:    age,
 	}
 }

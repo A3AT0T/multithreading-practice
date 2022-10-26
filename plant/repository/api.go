@@ -12,7 +12,9 @@ type Repository interface {
 	GetNormalHydration(id string) float64
 	GetNormalPh(id string) (int, int)
 	GetPlantIds() []string
+	GetAge(id string) int
 	SetPh(id string, ph int)
 	SetHydration(id string, hydration float64)
 	SetHealth(id string, data plant.HealthData)
+
 }

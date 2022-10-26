@@ -1,9 +1,7 @@
 package mock
 
 import (
-	"github.com/SchoolGolang/multithreading-practice/drone"
 	"github.com/SchoolGolang/multithreading-practice/plant"
-	"github.com/SchoolGolang/multithreading-practice/util"
 	"github.com/google/uuid"
 	"math/rand"
 )
@@ -13,6 +11,7 @@ func GetPlantData() plant.PlantData {
 	hydration := GetHydrationData()
 	ph := GetPHData()
 	health := GetHealthData()
+	age := GetAgeData()
 
 	return plant.PlantData{
 		ID:               uuid.New().String(),
@@ -23,6 +22,7 @@ func GetPlantData() plant.PlantData {
 		CurrentHydration: hydration,
 		CurrentPh:        ph,
 		CurrentHealth:    health,
+		Age:              age,
 	}
 }
 
@@ -40,14 +40,18 @@ func GetHealthData() plant.HealthData {
 		RootsState:  float64(rand.Intn(90)) + 10.0,
 	}
 }
-
-func GetDroneData() drone.Drone {
-	return drone.NewC3PODrone(
-		uuid.New().String(),
-		100,
-		util.Point{
-			X: float64(util.GetRandomIndex(1000)),
-			Y: float64(util.GetRandomIndex(1000)),
-		},
-	)
+func GetAgeData() int  {
+	return  rand.Intn(20)+10
 }
+
+//func GetDroneData() drone.Drone {
+//	return drone.NewC3PODrone(
+//		uuid.New().String(),
+//		100,
+//		util.Point{
+//			X: float64(util.GetRandomIndex(1000)),
+//			Y: float64(util.GetRandomIndex(1000)),
+//		},
+//	)
+//}
+

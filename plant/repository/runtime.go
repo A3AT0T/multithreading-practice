@@ -58,6 +58,10 @@ func (pr *PlantsRepository) GetPlantIds() []string {
 	return ids
 }
 
+func (pr *PlantsRepository) GetAge(id string) int {
+	return pr.plantsData[id].Age
+}
+
 func (pr *PlantsRepository) SetPh(id string, ph int) {
 	if p, ok := pr.plantsData[id]; ok {
 		p.CurrentPh = ph
